@@ -11,6 +11,7 @@ class Card:
         self.victory_points = victory_points
         self.village_points = village_points
         self.build_cost = build_cost
+        self.build_locations = []
 
     def __str__(self):
         return '{}: {}'.format(self.name, self.description)
@@ -43,18 +44,21 @@ class ClayMound(Card):
     def __init__(self):
         self.name = 'Clay Mound'
         self.description = 'Take Clay'
+        self.village_points = 3
 
 
-class Cathedral(Card):
+class CloisterOffice(Card):
     def __init__(self):
-        self.name = 'Cathedral'
+        self.name = 'Cloister Office'
         self.description = 'Take Gold'
+        self.village_points = 2
 
 
 class FarmYard(Card):
     def __init__(self):
         self.name = 'Farm Yard'
         self.description = 'Take Straw or Take Sheep'
+        self.village_points = 2
 
 
 class Resource:
@@ -96,7 +100,7 @@ class StartField(PlayField):
         self.add_card(card=Forest(), x=1, y=1)
         self.add_card(card=PeatBog(), x=0, y=0)
         self.add_card(card=PeatBog(), x=1, y=0)
-        self.add_card(card=Cathedral(), x=1, y=4)
+        self.add_card(card=CloisterOffice(), x=1, y=4)
         self.add_card(card=ClayMound(), x=0, y=4)
         self.add_card(card=FarmYard(), x=1, y=2)
 
