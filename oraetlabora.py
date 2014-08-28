@@ -19,6 +19,14 @@ class Card:
         pass
 
 
+class Buildings(dict):
+    def __init__(self):
+        self['Forest'] = card('Forest', 'Take Forest')
+        self['Peat Bog'] = card('Peat Bog', 'Take Peat')
+        self['Clay Mound'] = card('Clay Mound', 'Take Clay')
+        self['Cloister Office'] = card('Cloister Office', 'Take Gold')
+        self['Farm Yard'] = card('Farm Yard', 'Take Straw or Take Sheep')
+
 class Forest(Card):
     def __init__(self):
         self.name = 'Forest'
