@@ -2,6 +2,20 @@ class Player:
     def __init__(self, name):
         self.name = name
         self.land = StartField()
+        self.clergy = [Brother(), Brother(), Prior()]
+
+    def take_action(self, ):
+        pass
+
+
+class Brother:
+    def __init__(self):
+        self.x = -100
+        self.y = -100
+
+
+class Prior(Brother):
+    pass
 
 
 class Card:
@@ -22,11 +36,12 @@ class Card:
 
 class Buildings(dict):
     def __init__(self):
-        self['Forest'] = card('Forest', 'Take Forest')
-        self['Peat Bog'] = card('Peat Bog', 'Take Peat')
-        self['Clay Mound'] = card('Clay Mound', 'Take Clay')
-        self['Cloister Office'] = card('Cloister Office', 'Take Gold')
-        self['Farm Yard'] = card('Farm Yard', 'Take Straw or Take Sheep')
+        self['Forest'] = Card('Forest', 'Take Forest')
+        self['Peat Bog'] = Card('Peat Bog', 'Take Peat')
+        self['Clay Mound'] = Card('Clay Mound', 'Take Clay', 3)
+        self['Cloister Office'] = Card('Cloister Office', 'Take Gold', 2)
+        self['Farm Yard'] = Card('Farm Yard', 'Take Straw or Take Sheep', 2)
+
 
 class Forest(Card):
     def __init__(self):
@@ -90,6 +105,9 @@ class PlayField:
 
     def add_card(self, x, y, card):
         self.field[x][y] = card
+
+    def remove_card(self, x, y):
+        self.field[x][y] = Card()
 
 
 class StartField(PlayField):
