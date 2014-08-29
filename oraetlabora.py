@@ -3,6 +3,12 @@ class Player:
         self.name = name
         self.land = StartField()
         self.clergy = [Brother(), Brother(), Prior()]
+        self.resources = list()
+
+        temp = Resources()
+        for key in temp:
+            if temp[key].basic:
+                self.resources.append([temp[key], 1])
 
     def take_action(self, ):
         pass
@@ -77,9 +83,43 @@ class FarmYard(Card):
 
 
 class Resource:
-    def __init__(self, name='', description=''):
+    def __init__(self, name='', description='', basic=False, food_value=0, fuel_value=0.0, currency_value=0, victory_points=0):
         self.name = name
         self.description = description
+        self.basic = basic
+        self.food_value = food_value
+        self.fuel_value = fuel_value
+        self.currency_value = currency_value
+        self.victory_points = victory_points
+
+    def __str__(self):
+        return '{}: '.format(self.name)
+
+
+class Resources(dict):
+    def __init__(self):
+        self['wood'] = Resource(name='Wood', fuel_value=1, basic=True)
+        self['wheat'] = Resource(name='Wheat', food_value=1, basic=True)
+        self['clay'] = Resource(name='Clay', basic=True)
+        self['coin'] = Resource(name='Coin', currency_value=1, basic=True)
+        self['sheep'] = Resource(name='Sheep', food_value=2, basic=True)
+        self['peat'] = Resource(name='Peat', fuel_value=2, basic=True)
+
+        self['straw'] = Resource(name='Straw', fuel_value=.05)
+        self['coal'] = Resource(name='Coal', fuel_value=3)
+        self['ceramic'] = Resource(name='Ceramic', victory_points=3)
+        self['whiskey'] = Resource(name='Whiskey', food_value=1, currency_value=2, victory_points=1)
+        self['stone'] = Resource(name='Stone')
+        self['ornament'] = Resource(name='Ornament', victory_points=4)
+        self['reliquary'] = Resource(name='Reliquary', victory_points=8)
+        self['grape'] = Resource(name='Grape', food_value=1)
+        self['wine'] = Resource(name='Wine', food_value=1, currency_value=1, victory_points=1)
+        self['flour'] = Resource(name='Flour', food_value=1)
+        self['bread'] = Resource(name='Bread', food_value=5)
+        self['malt'] = Resource(name='Malt', food_value=1)
+        self['beer'] = Resource(name='Beer', food_value=5)
+        self['book'] = Resource(name='Book', victory_points=2)
+        self['meat'] = Resource(name='Meat', food_value=5)
 
 
 class PlayField:
@@ -172,3 +212,4 @@ players = list()
 players.append(Player('Howard'))
 
 print(players[0].land)
+print(players[0].resources)
