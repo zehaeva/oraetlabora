@@ -93,7 +93,7 @@ class Resource:
         self.victory_points = victory_points
 
     def __str__(self):
-        return '{}: '.format(self.name)
+        return self.name
 
 
 class Resources(dict):
