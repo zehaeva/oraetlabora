@@ -212,4 +212,5 @@ players = list()
 players.append(Player('Howard'))
 
 print(players[0].land)
-print(players[0].resources)
+for i in players[0].resources:
+    print('({}) {}'.format(i[1], i[0]))
