@@ -1,3 +1,9 @@
+class Variation:
+    def __init__(self, irish=False, french=False):
+        self.irish = irish
+        self.french = french
+
+
 class Player:
     def __init__(self, name):
         self.name = name
@@ -7,11 +13,46 @@ class Player:
 
         temp = Resources()
         for key in temp:
-            if temp[key].basic:
-                self.resources.append([temp[key], 1])
+            resource = temp[key]
+            if resource.basic:
+                resource.quantity = 1
+                self.resources.append(resource)
 
-    def take_action(self, ):
+    def take_action(self):
         pass
+
+    def tally_food(self):
+        tally = 0
+        for resource in self.resources:
+            tally += resource.total_food()
+        return tally
+
+    def tally_fuel(self):
+        tally = 0
+        for resource in self.resources:
+            tally += resource.total_fuel()
+        return tally
+
+    def tally_currency(self):
+        tally = 0
+        for resource in self.resources:
+            tally += resource.total_currency()
+        return tally
+
+    def add_resource(self, resource):
+        found = False
+        for item in self.resources:
+            if resource == item:
+                item.quantity += resource.quantity
+                found = True
+        if not found:
+            self.resources.append(resource)
+
+    def tally_resource_victory_points(self):
+        tally = 0
+        for resource in self.resources:
+            tally += resource.total_victory_points()
+        return tally
 
 
 class Brother:
@@ -25,12 +66,14 @@ class Prior(Brother):
 
 
 class Card:
-    def __init__(self, name='Empty', description='Place a Card here', victory_points=0, village_points=0, build_cost={}):
+    def __init__(self, name='Empty', description='Place a Card here', victory_points=0, village_points=0, build_cost=[], variation=[], build_location=[]):
         self.name = name
         self.description = description
         self.victory_points = victory_points
         self.village_points = village_points
         self.build_cost = build_cost
+        self.variation = variation
+        self.build_location = build_location
         self.build_locations = []
 
     def __str__(self):
@@ -42,11 +85,18 @@ class Card:
 
 class Buildings(dict):
     def __init__(self):
-        self['Forest'] = Card('Forest', 'Take Forest')
-        self['Peat Bog'] = Card('Peat Bog', 'Take Peat')
-        self['Clay Mound'] = Card('Clay Mound', 'Take Clay', 3)
-        self['Cloister Office'] = Card('Cloister Office', 'Take Gold', 2)
-        self['Farm Yard'] = Card('Farm Yard', 'Take Straw or Take Sheep', 2)
+        irish = Variation(irish=True)
+        french = Variation(french=True)
+        self['Forest'] = Card('Forest', 'Take Forest', variation=[irish, french])
+        self['Peat Bog'] = Card('Peat Bog', 'Take Peat', variation=[irish, french])
+        self['Clay Mound'] = Card('Clay Mound', 'Take Clay', 3, variation=[irish, french])
+        self['Cloister Office'] = Card('Cloister Office', 'Take Gold', 2, variation=[irish, french])
+        self['Farm Yard'] = Card('Farm Yard', 'Take Straw or Take Sheep', 2, variation=[irish, french])
+
+        self['Brewery'] = Card('Brewery', '1 malt, 1 grain -> 1 beer and then/or 1 beer -1x-> 7 coins', victory_points=9, village_points=7,
+                               build_cost=[Resources['stone'].set_quantity(2), Resources['straw'].set_quantity(1)])
+        self['Cloister Courtyard'] = Card('Cloister Courtyard', '3 different goods -1x-> 6 identical basic goods', victory_points=4, village_points=4,
+                                          build_cost=[Resources['wood'].set_quantity(2)])
 
 
 class Forest(Card):
@@ -83,7 +133,7 @@ class FarmYard(Card):
 
 
 class Resource:
-    def __init__(self, name='', description='', basic=False, food_value=0, fuel_value=0.0, currency_value=0, victory_points=0):
+    def __init__(self, name='', description='', basic=False, food_value=0, fuel_value=0.0, currency_value=0, victory_points=0.0):
         self.name = name
         self.description = description
         self.basic = basic
@@ -91,9 +141,28 @@ class Resource:
         self.fuel_value = fuel_value
         self.currency_value = currency_value
         self.victory_points = victory_points
+        self.quantity = 0
 
     def __str__(self):
         return self.name
+
+    def __eq__(self, other):
+        return self.name == other.name
+
+    def total_food(self):
+        return self.quantity * self.food_value
+
+    def total_fuel(self):
+        return self.quantity * self.fuel_value
+
+    def total_currency(self):
+        return self.quantity * self.currency_value
+
+    def total_victory_points(self):
+        return round(self.quantity * self.victory_points, 0)
+
+    def set_quantity(self, quantity):
+        self.quantity = quantity
 
 
 class Resources(dict):
@@ -101,14 +170,14 @@ class Resources(dict):
         self['wood'] = Resource(name='Wood', fuel_value=1, basic=True)
         self['wheat'] = Resource(name='Wheat', food_value=1, basic=True)
         self['clay'] = Resource(name='Clay', basic=True)
-        self['coin'] = Resource(name='Coin', currency_value=1, basic=True)
+        self['coin'] = Resource(name='Coin', food_value=1, currency_value=1, basic=True, victory_points=0.2)
         self['sheep'] = Resource(name='Sheep', food_value=2, basic=True)
         self['peat'] = Resource(name='Peat', fuel_value=2, basic=True)
 
         self['straw'] = Resource(name='Straw', fuel_value=.05)
         self['coal'] = Resource(name='Coal', fuel_value=3)
         self['ceramic'] = Resource(name='Ceramic', victory_points=3)
-        self['whiskey'] = Resource(name='Whiskey', food_value=1, currency_value=2, victory_points=1)
+        self['whiskey'] = Resource(name='Whiskey', food_value=2, currency_value=2, victory_points=1)
         self['stone'] = Resource(name='Stone')
         self['ornament'] = Resource(name='Ornament', victory_points=4)
         self['reliquary'] = Resource(name='Reliquary', victory_points=8)
@@ -208,9 +277,11 @@ class RondelProgression:
                             '4': {'long': [], 'short': []}}
         self.progression.append([])
 
+resources = Resources()
+
 players = list()
 players.append(Player('Howard'))
 
 print(players[0].land)
 for i in players[0].resources:
-    print('({}) {}'.format(i[1], i[0]))
+    print('({}) {}'.format(i, i.quantity))
