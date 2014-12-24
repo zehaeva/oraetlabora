@@ -1,3 +1,6 @@
+from enum import Enum
+
+
 class Player:
     def __init__(self, name):
         self.name = name
@@ -12,6 +15,20 @@ class Player:
 
     def take_action(self, ):
         pass
+
+    def add_resource(self, resource, quantity):
+        success = False
+        for value_pair in self.resources:
+            if resource in value_pair:
+                value_pair[1] += quantity
+                success = True
+
+        if not success:
+            self.resources.append([resource, quantity])
+            success = True
+
+        if success:
+            print('Player {player_name} took {resource_quantity} {resource_name}'.format(player_name=self.name, resource_quantity=quantity, resource_name=resource.name))
 
 
 class Brother:
@@ -32,6 +49,9 @@ class Card:
         self.village_points = village_points
         self.build_cost = build_cost
         self.build_locations = []
+
+    def __repr__(self):
+        return 'Card: {}'.format(self.name, self.description)
 
     def __str__(self):
         return '{}: {}'.format(self.name, self.description)
@@ -82,8 +102,14 @@ class FarmYard(Card):
         self.village_points = 2
 
 
+class Variants(Enum):
+    irish = 1
+    french = 2
+
+
 class Resource:
-    def __init__(self, name='', description='', basic=False, food_value=0, fuel_value=0.0, currency_value=0, victory_points=0):
+    def __init__(self, name='', description='', basic=False, food_value=0, fuel_value=0.0, currency_value=0, victory_points=0, variants=[Variants.irish, Variants.french],
+                 start_turn=0, tolken=False):
         self.name = name
         self.description = description
         self.basic = basic
@@ -91,33 +117,42 @@ class Resource:
         self.fuel_value = fuel_value
         self.currency_value = currency_value
         self.victory_points = victory_points
+        self.variants = variants
+        self.start_turn = start_turn
+        self.tolken = tolken
+
+    def __repr__(self):
+        return '{}'.format(self.name)
 
     def __str__(self):
         return '{}: '.format(self.name)
 
+    def __eq__(self, other):
+        return self.name == other
+
 
 class Resources(dict):
     def __init__(self):
-        self['wood'] = Resource(name='Wood', fuel_value=1, basic=True)
-        self['wheat'] = Resource(name='Wheat', food_value=1, basic=True)
-        self['clay'] = Resource(name='Clay', basic=True)
-        self['coin'] = Resource(name='Coin', currency_value=1, basic=True)
-        self['sheep'] = Resource(name='Sheep', food_value=2, basic=True)
-        self['peat'] = Resource(name='Peat', fuel_value=2, basic=True)
+        self['wood'] = Resource(name='Wood', fuel_value=1, basic=True, tolken=True)
+        self['wheat'] = Resource(name='Wheat', food_value=1, basic=True, tolken=True)
+        self['clay'] = Resource(name='Clay', basic=True, tolken=True)
+        self['coin'] = Resource(name='Coin', currency_value=1, basic=True, tolken=True)
+        self['sheep'] = Resource(name='Sheep', food_value=2, basic=True, tolken=True)
+        self['peat'] = Resource(name='Peat', fuel_value=2, basic=True, tolken=True)
 
         self['straw'] = Resource(name='Straw', fuel_value=.05)
         self['coal'] = Resource(name='Coal', fuel_value=3)
         self['ceramic'] = Resource(name='Ceramic', victory_points=3)
-        self['whiskey'] = Resource(name='Whiskey', food_value=1, currency_value=2, victory_points=1)
-        self['stone'] = Resource(name='Stone')
+        self['whiskey'] = Resource(name='Whiskey', food_value=1, currency_value=2, victory_points=1, variants=[Variants.irish])
+        self['stone'] = Resource(name='Stone', tolken=True)
         self['ornament'] = Resource(name='Ornament', victory_points=4)
         self['reliquary'] = Resource(name='Reliquary', victory_points=8)
-        self['grape'] = Resource(name='Grape', food_value=1)
-        self['wine'] = Resource(name='Wine', food_value=1, currency_value=1, victory_points=1)
+        self['grape'] = Resource(name='Grape', food_value=1, variants=[Variants.french], tolken=True)
+        self['wine'] = Resource(name='Wine', food_value=1, currency_value=1, victory_points=1, variants=[Variants.french])
         self['flour'] = Resource(name='Flour', food_value=1)
         self['bread'] = Resource(name='Bread', food_value=5)
-        self['malt'] = Resource(name='Malt', food_value=1)
-        self['beer'] = Resource(name='Beer', food_value=5)
+        self['malt'] = Resource(name='Malt', food_value=1, variants=[Variants.irish])
+        self['beer'] = Resource(name='Beer', food_value=5, variants=[Variants.irish])
         self['book'] = Resource(name='Book', victory_points=2)
         self['meat'] = Resource(name='Meat', food_value=5)
 
@@ -166,9 +201,8 @@ class StartField(PlayField):
         return PlayField.__str__(self)
 
 
-class Action:
-    def __init__(self):
-        pass
+class Actions(Enum):
+    take_resource = 1
 
 
 class WheelSpace:
@@ -176,10 +210,14 @@ class WheelSpace:
         self.value = value
         self.resources = []
 
+    def __repr__(self):
+        return 'Resources {}, Amount {}'.format(self.resources, self.value)
+
 
 class Rondel:
-    def __init__(self):
+    def __init__(self, variant=Variants.irish):
         self.current_turn = 0
+        self.variant = variant
         self.wheel = []
         self.wheel.append(WheelSpace(0))
         self.wheel.append(WheelSpace(1))
@@ -196,8 +234,28 @@ class Rondel:
         self.wheel.append(WheelSpace(9))
         self.wheel.append(WheelSpace(10))
 
+        temp = Resources()
+        for key in temp:
+            if self.variant in temp[key].variants and temp[key].tolken:
+                self.wheel[0].resources.append(temp[key])
+
     def next_turn(self):
         self.current_turn += 1
+        for i in range(13, 0, -1):
+            for space_resources in self.wheel[i-1].resources:
+                self.wheel[i].resources.append(space_resources)
+            self.wheel[i-1].resources.clear()
+
+    def take_resource(self, player, resource):
+        for i in range(14, 0, -1):
+            if resource.name in self.wheel[i-1].resources:
+                self.wheel[i-1].resources.remove(resource)
+                self.wheel[0].resources.append(resource)
+                player.add_resource(resource, self.wheel[i-1].value)
+                break
+
+    def __repr__(self):
+        return "Rondel:\nCurrentTurn {}\n{}".format(self.current_turn, self.wheel)
 
 
 class RondelProgression:
@@ -208,8 +266,20 @@ class RondelProgression:
                             '4': {'long': [], 'short': []}}
         self.progression.append([])
 
+rondel = Rondel(Variants.irish)
+resources = Resources()
+
 players = list()
 players.append(Player('Howard'))
+
+rondel.next_turn()
+rondel.next_turn()
+rondel.next_turn()
+rondel.take_resource(players[0], resources['wood'])
+print(rondel)
+rondel.take_resource(players[0], resources['wood'])
+rondel.next_turn()
+print(rondel)
 
 print(players[0].land)
 print(players[0].resources)
