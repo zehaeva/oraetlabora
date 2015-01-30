@@ -258,11 +258,19 @@ class Buildings(dict):
         return self.round_list(BuildingRound.d)
 
 
+class FieldType(Enum):
+    water = 1
+    coast = 2
+    plain = 3
+    hillside = 4
+    mountain = 5
+
+
 class PlayField:
     def __init__(self, height, width):
         self.height = height
         self.width = width
-        self.field = list(list(Card() for i in range(width)) for i in range(height))
+        self.field = list(list({'building': Card()} for i in range(width)) for i in range(height))
         # self.size_field()
 
     def size_field(self):
@@ -275,12 +283,16 @@ class PlayField:
         my_return = ''
         for x in self.field:
             for y in x:
-                my_return = '{} | {}'.format(my_return, y)
+                my_return = '{} | {}: {}'.format(my_return, y['type'].name, y['building'])
             my_return = "{} |\n".format(my_return)
         return my_return
 
     def add_card(self, x, y, card):
-        self.field[x][y] = card
+        self.field[x][y]['building'] = card
+
+    def setup(self, x, y, card, field):
+        self.field[x][y]['building'] = card
+        self.field[x][y]['type'] = field
 
     def remove_card(self, x, y):
         self.field[x][y] = Card()
@@ -289,14 +301,16 @@ class PlayField:
 class StartField(PlayField):
     def __init__(self, buildings):
         PlayField.__init__(self, 2, 5)
-        self.add_card(card=buildings['forest'], x=0, y=1)
-        self.add_card(card=buildings['forest'], x=0, y=2)
-        self.add_card(card=buildings['forest'], x=1, y=1)
-        self.add_card(card=buildings['peat bog'], x=0, y=0)
-        self.add_card(card=buildings['peat bog'], x=1, y=0)
-        self.add_card(card=buildings['cloister office'], x=1, y=4)
-        self.add_card(card=buildings['clay mound'], x=0, y=4)
-        self.add_card(card=buildings['farm yard'], x=1, y=2)
+        self.setup(card=buildings['forest'], x=0, y=1, field=FieldType.plain)
+        self.setup(card=buildings['forest'], x=0, y=2, field=FieldType.plain)
+        self.setup(card=buildings['forest'], x=1, y=1, field=FieldType.plain)
+        self.setup(card=buildings['peat bog'], x=0, y=0, field=FieldType.plain)
+        self.setup(card=buildings['peat bog'], x=1, y=0, field=FieldType.plain)
+        self.setup(card=buildings['cloister office'], x=1, y=4, field=FieldType.plain)
+        self.setup(card=buildings['clay mound'], x=0, y=4, field=FieldType.plain)
+        self.setup(card=buildings['farm yard'], x=1, y=2, field=FieldType.plain)
+        self.setup(card=Card(), x=0, y=3, field=FieldType.plain)
+        self.setup(card=Card(), x=1, y=3, field=FieldType.plain)
 
     def __str__(self):
         return PlayField.__str__(self)
@@ -307,8 +321,39 @@ class Coast(PlayField):
         PlayField.__init__(self, 2, 2)
 
 
-class Actions(Enum):
-    take_resource = 1
+class PlayerResources:
+    def __init__(self, resources):
+        self.resources = resources
+
+    def __repr__(self):
+        return self.resources
+
+    def victory_points(self):
+        tally = 0
+        for resource in self.resources:
+            tally += resource.total_victory_points()
+        return tally
+
+    def add(self, resource):
+        found = False
+        for item in self.resources:
+            if resource == item:
+                item.quantity += resource.quantity
+                found = True
+        if not found:
+            self.resources.append(resource)
+
+    def fuel(self):
+        tally = 0
+        for resource in self.resources:
+            tally += resource.total_fuel()
+        return tally
+
+    def currency(self):
+        tally = 0
+        for resource in self.resources:
+            tally += resource.total_currency()
+        return tally
 
 
 class Player:
@@ -318,7 +363,14 @@ class Player:
         self.clergy = [Brother(), Brother(), Prior()]
         self.resources = Resources().basic(quantity=1)
 
-    def take_action(self, ):
+    def take_action(self, action):
+        if action == Actions.clear_land:
+            print('Select Land to clear:')
+            '''for i in self.land:
+                for x in i.field:
+                    for y in x:
+                        if 'forest' in y['building'].name:
+                            print('Forest @ {} x {}'.format(y, x))'''
         pass
 
     def build(self):
@@ -387,6 +439,7 @@ class Rondel:
         for key in temp:
             if self.variant in temp[key].variants and temp[key].token:
                 self.wheel[0].resources.append(temp[key])
+        self.wheel[0].resources.append(Resource(name='Joker', token=True))
 
     def next_turn(self):
         self.current_turn += 1
@@ -420,15 +473,17 @@ variant = Variants.irish
 
 rondel = Rondel(variant)
 resources = Resources()
-buildings = Buildings(variant, 4)
+buildings = Buildings(variant, 3)
 
-print(buildings.a())
+print(buildings.a().values())
 
 players = list()
 players.append(Player('Howard', variant))
+players.append(Player('Andrew', variant))
+players.append(Player('Chris', variant))
 
 print(rondel)
 
 print(players[0].land)
-for i in players[0].resources:
-    print('({}) {}'.format(i, i.quantity))
+for value in players[0].resources.values():
+    print('({}) {}'.format(value.quantity, value))#
