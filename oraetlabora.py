@@ -297,6 +297,12 @@ class PlayField:
     def remove_card(self, x, y):
         self.field[x][y] = Card()
 
+    def __iter__(self):
+        return iter(self.field)
+
+    def __len__(self):
+        return len(self.field)
+
 
 class StartField(PlayField):
     def __init__(self, buildings):
@@ -366,11 +372,16 @@ class Player:
     def take_action(self, action):
         if action == Actions.clear_land:
             print('Select Land to clear:')
-            '''for i in self.land:
-                for x in i.field:
-                    for y in x:
-                        if 'forest' in y['building'].name:
-                            print('Forest @ {} x {}'.format(y, x))'''
+            loc_x = 0
+            for x in self.land:
+                loc_x += 1
+                loc_y = 0
+                for y in x:
+                    loc_y += 1
+                    if 'forest' in y['building'].name.lower():
+                        print('Forest @ {} x {}'.format(loc_y, loc_x))
+                    elif 'peat' in y['building'].name.lower():
+                        print('Peat Bog @ {} x {}'.format(loc_y, loc_x))
         pass
 
     def build(self):
@@ -486,4 +497,6 @@ print(rondel)
 
 print(players[0].land)
 for value in players[0].resources.values():
-    print('({}) {}'.format(value.quantity, value))#
+    print('({}) {}'.format(value.quantity, value))
+
+players[0].take_action(Actions.clear_land)
