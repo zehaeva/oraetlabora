@@ -266,11 +266,21 @@ class FieldType(Enum):
     mountain = 5
 
 
+class FieldSpot:
+    def __init__(self, x, y, filed_type, card):
+        self.x = x
+        self.y = y
+        self.filed_type = filed_type
+        self.card = card
+
+
 class PlayField:
     def __init__(self, height, width):
         self.height = height
         self.width = width
-        self.field = list(list({'building': Card()} for i in range(width)) for i in range(height))
+        # I'm not sure I like this structure, I'm going to go with a list where each element has an x, y, type, and card spot
+
+        #self.field = list(list({'building': Card()} for i in range(width)) for i in range(height))
         # self.size_field()
 
     def size_field(self):
