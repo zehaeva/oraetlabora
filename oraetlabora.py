@@ -1,9 +1,15 @@
 from enum import Enum
+import cmd
 
 
 class Variants(Enum):
     irish = 1
     french = 2
+
+
+class GameLength(Enum):
+    long = 1
+    short = 2
 
 
 class Actions(Enum):
@@ -117,7 +123,8 @@ class Prior(Brother):
 
 class Card:
     def __init__(self, name='Empty', description='Place a Card here', victory_points=0, village_points=0, build_cost=[], variants=[Variants.irish, Variants.french],
-                 build_locations=[BuildLocation.coast, BuildLocation.meadow, BuildLocation.hillside], religious=False, start_round=[], number_of_players=[4]):
+                 build_locations=[BuildLocation.coast, BuildLocation.meadow, BuildLocation.hillside], religious=False, start_round=[], number_of_players=[4],
+                 allowable_actions=[Actions.contract, Actions.place_brother, Actions.place_prior]):
         self.name = name
         self.description = description
         self.victory_points = victory_points
@@ -128,6 +135,7 @@ class Card:
         self.religious = religious
         self.start_round = start_round
         self.number_of_players = number_of_players
+        self.allowable_actions = allowable_actions
 
     def __repr__(self):
         return 'Card: {}'.format(self.name, self.description)
@@ -141,8 +149,8 @@ class Card:
 
 class Buildings(dict):
     def __init__(self, variant, number_of_players):
-        self['forest'] = Card('Forest', 'Take Forest', start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5])
-        self['peat bog'] = Card('Peat Bog', 'Take Peat', start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5])
+        self['forest'] = Card('Forest', 'Take Forest', start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5], allowable_actions=[Actions.clear_land])
+        self['peat bog'] = Card('Peat Bog', 'Take Peat', start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5], allowable_actions=[Actions.clear_land])
         self['clay mound'] = Card('Clay Mound', 'Take Clay', 3, start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5])
         self['cloister office'] = Card('Cloister Office', 'Take Gold', 2, start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5])
         self['farm yard'] = Card('Farm Yard', 'Take Straw or Take Sheep', 2, start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5])
@@ -280,7 +288,7 @@ class PlayField:
         self.width = width
         # I'm not sure I like this structure, I'm going to go with a list where each element has an x, y, type, and card spot
 
-        #self.field = list(list({'building': Card()} for i in range(width)) for i in range(height))
+        self.field = list(list({'building': Card()} for i in range(width)) for i in range(height))
         # self.size_field()
 
     def size_field(self):
@@ -325,8 +333,8 @@ class StartField(PlayField):
         self.setup(card=buildings['cloister office'], x=1, y=4, field=FieldType.plain)
         self.setup(card=buildings['clay mound'], x=0, y=4, field=FieldType.plain)
         self.setup(card=buildings['farm yard'], x=1, y=2, field=FieldType.plain)
-        self.setup(card=Card(), x=0, y=3, field=FieldType.plain)
-        self.setup(card=Card(), x=1, y=3, field=FieldType.plain)
+        self.setup(card=Card(allowable_actions=[Actions.build]), x=0, y=3, field=FieldType.plain)
+        self.setup(card=Card(allowable_actions=[Actions.build]), x=1, y=3, field=FieldType.plain)
 
     def __str__(self):
         return PlayField.__str__(self)
@@ -379,19 +387,20 @@ class Player:
         self.clergy = [Brother(), Brother(), Prior()]
         self.resources = Resources().basic(quantity=1)
 
-    def take_action(self, action):
+    def available_actions(self, action):
         if action == Actions.clear_land:
             print('Select Land to clear:')
             loc_x = 0
-            for x in self.land:
-                loc_x += 1
-                loc_y = 0
-                for y in x:
-                    loc_y += 1
-                    if 'forest' in y['building'].name.lower():
-                        print('Forest @ {} x {}'.format(loc_y, loc_x))
-                    elif 'peat' in y['building'].name.lower():
-                        print('Peat Bog @ {} x {}'.format(loc_y, loc_x))
+        elif action == Actions.build:
+            print('Select plot to build on:')
+            loc_x = 0
+        for x in self.land:
+            loc_x += 1
+            loc_y = 0
+            for y in x:
+                loc_y += 1
+                if action in y['building'].allowable_actions:
+                    print('{} @ {} x {}'.format(y['building'].name, loc_y, loc_x))
         pass
 
     def build(self):
@@ -436,25 +445,27 @@ class WheelSpace:
         return 'Resources {}'.format(self.resources)
 
 
+class RondelProgression:
+    def __init__(self):
+        self.progression = {1: {GameLength.long: {},
+                                GameLength.short: {}},
+                            2: {GameLength.long: {},
+                                GameLength.short: {}},
+                            3: {GameLength.long: {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 8, 'stone': 13, 'wheel': [0, 1, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
+                                GameLength.short: {}},
+                            4: {GameLength.long: {'turns': 25, 'a': 7, 'b': 10, 'c': 16, 'd': 19, 'e': 25, 'grape': 8, 'stone': 13, 'wheel': [0]},
+                                GameLength.short: {}}}
+
+
 class Rondel:
-    def __init__(self, variant=Variants.irish):
+    def __init__(self, variant=Variants.irish, number_of_players=3, length=GameLength.long):
+        rp = RondelProgression()
+        self.setup = rp.progression[number_of_players][length]
         self.current_turn = 0
         self.variant = variant
         self.wheel = []
-        self.wheel.append(WheelSpace(0))
-        self.wheel.append(WheelSpace(1))
-        self.wheel.append(WheelSpace(2))
-        self.wheel.append(WheelSpace(3))
-        self.wheel.append(WheelSpace(4))
-        self.wheel.append(WheelSpace(5))
-        self.wheel.append(WheelSpace(6))
-        self.wheel.append(WheelSpace(6))
-        self.wheel.append(WheelSpace(7))
-        self.wheel.append(WheelSpace(7))
-        self.wheel.append(WheelSpace(8))
-        self.wheel.append(WheelSpace(8))
-        self.wheel.append(WheelSpace(9))
-        self.wheel.append(WheelSpace(10))
+        for i in self.setup['wheel']:
+            self.wheel.append(WheelSpace(i))
 
         temp = Resources()
         for key in temp:
@@ -481,27 +492,99 @@ class Rondel:
     def __repr__(self):
         return "Rondel:\nCurrentTurn {}\n{}".format(self.current_turn, self.wheel)
 
+# set up the Resources
+resources = Resources()
 
-class RondelProgression:
-    def __init__(self, number_of_players):
-        self.progression = {'1': {'long': {}, 'short': {}},
-                            '2': {'long': {}, 'short': {}},
-                            '3': {'long': {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 8, 'stone': 13}, 'short': {}},
-                            '4': {'long': {'turns': 25, 'a': 7, 'b': 10, 'c': 16, 'd': 19, 'e': 25, 'grape': 8, 'stone': 13}, 'short': {}}}
-        self.progression.append([])
 
+class OraetLaboraShell(cmd.Cmd):
+    intro = 'Welcome to Ora et Labora! Type help or ? to list commands.\n'
+    prompt = '(O&L) '
+    variant = None
+    players = list()
+    resources = Resources()
+    rondel = None
+    current_game_length = None
+
+    # basic commands
+    def do_setvariant(self, arg):
+        ''' set which variant is being used, Irish or French '''
+        if self.variant is None:
+            if arg == 1 or arg == '1' or arg.lower() == 'irish':
+                print('setting Variant to Irish')
+                self.variant = Variants.irish
+            else:
+                print('setting Variant to French')
+                self.variant = Variants.french
+
+    def do_addplayer(self, arg):
+        ''' add player to a game '''
+        if len(self.players) == 5:
+            print('You have the maximum amount of players!')
+        else:
+            if self.variant is None:
+                print('You have to set the variant first!')
+            else:
+                self.players.append(Player(arg, self.variant))
+                print('added player ({}) {}'.format(len(self.players), arg))
+
+    def do_removeplayer(self, arg):
+        ''' Remove player from the game '''
+
+        if len(self.players) == 0:
+            print("there's no one to remove!")
+        else:
+            pass
+
+    def do_setlength(self, arg):
+        ''' sets the length of the game, Short or Long '''
+        if arg == 1 or arg == '1' or arg.lower() == 'long':
+            print("Game Length set to Long")
+            self.current_game_length = GameLength.long
+        else:
+            print("Game Length set to Short")
+            self.current_game_length = GameLength.short
+
+    def do_start(self, arg):
+        ''' starts the game '''
+        if self.variant is not None:
+            if 2 <= len(self.players) <= 5:
+                if self.current_game_length is not None:
+                    self.rondel = Rondel(variant=self.variant, number_of_players=len(self.players), length=self.current_game_length)
+                    self.prompt = "(O&L) Turn {}: ".format(self.rondel.current_turn)
+                else:
+                    print("You have to set the game length before you can start!")
+            else:
+                print("You need at least 2, and no more than 5, players to play!")
+        else:
+            print("You have to set the variant for you start!")
+
+
+def parse(arg):
+    ''' Convert a series of zero or more numbers to an argument tuple '''
+    return tuple(map(int, arg.split()))
+
+
+if __name__ == '__main__':
+    OraetLaboraShell().cmdloop()
+
+
+# choose the variant
 variant = Variants.irish
 
-rondel = Rondel(variant)
-resources = Resources()
-buildings = Buildings(variant, 3)
-
-print(buildings.a().values())
+# choose game length
+current_game_length = GameLength.long
 
 players = list()
+# enter the players
 players.append(Player('Howard', variant))
 players.append(Player('Andrew', variant))
 players.append(Player('Chris', variant))
+
+# set up the rondel buildings used
+rondel = Rondel(variant=variant, number_of_players=len(players), length=current_game_length)
+buildings = Buildings(variant, len(players))
+
+print(buildings.a().values())
 
 print(rondel)
 
@@ -509,4 +592,5 @@ print(players[0].land)
 for value in players[0].resources.values():
     print('({}) {}'.format(value.quantity, value))
 
-players[0].take_action(Actions.clear_land)
+players[0].available_actions(Actions.clear_land)
+players[0].available_actions(Actions.build)
