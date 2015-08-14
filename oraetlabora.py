@@ -212,7 +212,7 @@ class Buildings(dict):
         self['refectory'] = Card(start_round=[BuildingRound.c], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
         self['c-grapevine'] = Card(start_round=[BuildingRound.c], number_of_players=[4])
         self['coal harbor'] = Card(start_round=[BuildingRound.c], variants=[Variants.irish], number_of_players=[1, 4])
-        self['calefactory'] = Card(start_round=[BuildingRound.c], variants=[Variants.french], number_of_players=[1, 3, 4])
+        self['colefactory'] = Card(start_round=[BuildingRound.c], variants=[Variants.french], number_of_players=[1, 3, 4])
         self['filial church'] = Card(start_round=[BuildingRound.c], variants=[Variants.irish], number_of_players=[1, 3, 4])
         self['shipping company'] = Card(start_round=[BuildingRound.c], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
         self['cooperage'] = Card(start_round=[BuildingRound.c], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
@@ -231,14 +231,14 @@ class Buildings(dict):
         self['guesthouse'] = Card(start_round=[BuildingRound.d], variants=[Variants.irish], number_of_players=[1, 3, 4])
         self['house of the brotherhood'] = Card(start_round=[BuildingRound.d], number_of_players=[1, 2, 3, 4])
     #   settlements
-        self['shanty town'] = Card(name='Shanty Town', start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4])
-        self['farming village'] = Card(name='Farming Village', start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4])
-        self['market town'] = Card(name='Market Town', start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4])
-        self['fishing village'] = Card(name='Fishing Village', start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4])
-        self['artists colony'] = Card(name='Artists Colony', start_round=[BuildingRound.a], number_of_players=[1, 2, 3, 4])
-        self['hamlet'] = Card(name='Hamlet', start_round=[BuildingRound.b], number_of_players=[1, 2, 3, 4])
-        self['village'] = Card(name='Village', start_round=[BuildingRound.c], number_of_players=[1, 2, 3, 4])
-        self['hilltop village'] = Card(name='Hilltop Village', start_round=[BuildingRound.d], number_of_players=[1, 2, 3, 4])
+        self['shanty town'] = Card(name='Shanty Town', start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4], allowable_actions=[])
+        self['farming village'] = Card(name='Farming Village', start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4], allowable_actions=[])
+        self['market town'] = Card(name='Market Town', start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4], allowable_actions=[])
+        self['fishing village'] = Card(name='Fishing Village', start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4], allowable_actions=[])
+        self['artists colony'] = Card(name='Artists Colony', start_round=[BuildingRound.a], number_of_players=[1, 2, 3, 4], allowable_actions=[])
+        self['hamlet'] = Card(name='Hamlet', start_round=[BuildingRound.b], number_of_players=[1, 2, 3, 4], allowable_actions=[])
+        self['village'] = Card(name='Village', start_round=[BuildingRound.c], number_of_players=[1, 2, 3, 4], allowable_actions=[])
+        self['hilltop village'] = Card(name='Hilltop Village', start_round=[BuildingRound.d], number_of_players=[1, 2, 3, 4], allowable_actions=[])
 
         self.variant = variant
         self.number_of_players = number_of_players
@@ -264,6 +264,13 @@ class Buildings(dict):
 
     def d(self):
         return self.round_list(BuildingRound.d)
+
+    def take(self, building_name):
+        my_return = None
+        if self[building_name] is not None:
+            my_return = self[building_name]
+            self[building_name] = None
+        return my_return
 
 
 class FieldType(Enum):
@@ -386,6 +393,7 @@ class Player:
         self.land = StartField(Buildings(variant=variant, number_of_players=0))
         self.clergy = [Brother(), Brother(), Prior()]
         self.resources = Resources().basic(quantity=1)
+        self.turn_number = 0
 
     def available_actions(self, action):
         if action == Actions.clear_land:
@@ -403,7 +411,9 @@ class Player:
                     print('{} @ {} x {}'.format(y['building'].name, loc_y, loc_x))
         pass
 
-    def build(self):
+    def build(self, building, loc_x, loc_y):
+        # check to see if space is blank
+
         pass
 
     def tally_fuel(self, ):
@@ -502,10 +512,20 @@ class OraetLaboraShell(cmd.Cmd):
     variant = None
     players = list()
     resources = Resources()
+    buildings = None
     rondel = None
     current_game_length = None
 
     # basic commands
+    def do_variant(self, arg):
+        ''' display current variant '''
+        if self.variant == Variants.irish:
+            print("Irish")
+        elif self.variant == Variants.french:
+            print("French")
+        else:
+            print("Variant Not Set")
+
     def do_setvariant(self, arg):
         ''' set which variant is being used, Irish or French '''
         if self.variant is None:
@@ -515,6 +535,12 @@ class OraetLaboraShell(cmd.Cmd):
             else:
                 print('setting Variant to French')
                 self.variant = Variants.french
+
+    def do_player(self, arg):
+        ''' display all players or just one player if you provide a name '''
+        for player in self.players:
+            if arg.lower() == player.name:
+                print(player)
 
     def do_addplayer(self, arg):
         ''' add player to a game '''
@@ -549,7 +575,13 @@ class OraetLaboraShell(cmd.Cmd):
         if self.variant is not None:
             if 2 <= len(self.players) <= 5:
                 if self.current_game_length is not None:
+                    # set up rondel
                     self.rondel = Rondel(variant=self.variant, number_of_players=len(self.players), length=self.current_game_length)
+                    # set up available buildings
+                    self.buildings = Buildings(variant, len(players))
+                    # randomize turn order
+
+                    # change prompt
                     self.prompt = "(O&L) Turn {}: ".format(self.rondel.current_turn)
                 else:
                     print("You have to set the game length before you can start!")
