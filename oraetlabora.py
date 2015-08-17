@@ -18,6 +18,7 @@ class Actions(Enum):
     place_brother = 3
     place_prior = 4
     contract = 5
+    buy_plot = 6
 
 
 class BuildLocation(Enum):
@@ -29,6 +30,7 @@ class BuildLocation(Enum):
 
 
 class BuildingRound(Enum):
+    setup = 0
     start = 1
     a = 2
     b = 3
@@ -122,8 +124,8 @@ class Prior(Brother):
 
 
 class Card:
-    def __init__(self, name='Empty', description='Place a Card here', victory_points=0, village_points=0, build_cost=[], variants=[Variants.irish, Variants.french],
-                 build_locations=[BuildLocation.coast, BuildLocation.meadow, BuildLocation.hillside], religious=False, start_round=[], number_of_players=[4],
+    def __init__(self, name='Empty', description='Place a Card here', victory_points=0, village_points=0, build_cost=list(), variants=[Variants.irish, Variants.french],
+                 build_locations=[BuildLocation.coast, BuildLocation.meadow, BuildLocation.hillside], religious=False, start_round=list(), number_of_players=[4],
                  allowable_actions=[Actions.contract, Actions.place_brother, Actions.place_prior]):
         self.name = name
         self.description = description
@@ -143,7 +145,9 @@ class Card:
     def __str__(self):
         return '{}: {}'.format(self.name, self.description)
 
-    def action(self):
+    def take_action(self, action):
+        if action in self.allowable_actions:
+            pass
         pass
 
 
@@ -459,12 +463,13 @@ class RondelProgression:
     def __init__(self):
         self.progression = {1: {GameLength.long: {},
                                 GameLength.short: {}},
-                            2: {GameLength.long: {},
+                            2: {GameLength.long: {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 8, 'stone': 13, 'wheel': [0, 1, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
                                 GameLength.short: {}},
                             3: {GameLength.long: {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 8, 'stone': 13, 'wheel': [0, 1, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
                                 GameLength.short: {}},
                             4: {GameLength.long: {'turns': 25, 'a': 7, 'b': 10, 'c': 16, 'd': 19, 'e': 25, 'grape': 8, 'stone': 13, 'wheel': [0]},
-                                GameLength.short: {}}}
+                                GameLength.short: {},}
+                            }
 
 
 class Rondel:
@@ -509,12 +514,15 @@ resources = Resources()
 class OraetLaboraShell(cmd.Cmd):
     intro = 'Welcome to Ora et Labora! Type help or ? to list commands.\n'
     prompt = '(O&L) '
+    min_players = 1
+    max_players = 4
     variant = None
     players = list()
     resources = Resources()
     buildings = None
     rondel = None
     current_game_length = None
+    current_game_phase = BuildingRound.setup
 
     # basic commands
     def do_variant(self, arg):
@@ -528,13 +536,14 @@ class OraetLaboraShell(cmd.Cmd):
 
     def do_setvariant(self, arg):
         ''' set which variant is being used, Irish or French '''
-        if self.variant is None:
-            if arg == 1 or arg == '1' or arg.lower() == 'irish':
-                print('setting Variant to Irish')
-                self.variant = Variants.irish
-            else:
-                print('setting Variant to French')
-                self.variant = Variants.french
+        if self.current_game_length == BuildingRound.setup:
+            if self.variant is None:
+                if arg == 1 or arg == '1' or arg.lower() == 'irish':
+                    print('setting Variant to Irish')
+                    self.variant = Variants.irish
+                else:
+                    print('setting Variant to French')
+                    self.variant = Variants.french
 
     def do_player(self, arg):
         ''' display all players or just one player if you provide a name '''
@@ -544,49 +553,52 @@ class OraetLaboraShell(cmd.Cmd):
 
     def do_addplayer(self, arg):
         ''' add player to a game '''
-        if len(self.players) == 5:
-            print('You have the maximum amount of players!')
-        else:
-            if self.variant is None:
-                print('You have to set the variant first!')
+        if self.current_game_length == BuildingRound.setup:
+            if len(self.players) == self.max_players:
+                print('You have the maximum amount of players!')
             else:
-                self.players.append(Player(arg, self.variant))
-                print('added player ({}) {}'.format(len(self.players), arg))
+                if self.variant is None:
+                    print('You have to set the variant first!')
+                else:
+                    self.players.append(Player(arg, self.variant))
+                    print('added player ({}) {}'.format(len(self.players), arg))
 
     def do_removeplayer(self, arg):
         ''' Remove player from the game '''
-
-        if len(self.players) == 0:
-            print("there's no one to remove!")
-        else:
-            pass
+        if self.current_game_length == BuildingRound.setup:
+            if len(self.players) == 0:
+                print("there's no one to remove!")
+            else:
+                pass
 
     def do_setlength(self, arg):
         ''' sets the length of the game, Short or Long '''
-        if arg == 1 or arg == '1' or arg.lower() == 'long':
-            print("Game Length set to Long")
-            self.current_game_length = GameLength.long
-        else:
-            print("Game Length set to Short")
-            self.current_game_length = GameLength.short
+        if self.current_game_length == BuildingRound.setup:
+            if arg == 1 or arg == '1' or arg.lower() == 'long':
+                print("Game Length set to Long")
+                self.current_game_length = GameLength.long
+            else:
+                print("Game Length set to Short")
+                self.current_game_length = GameLength.short
 
     def do_start(self, arg):
         ''' starts the game '''
         if self.variant is not None:
-            if 2 <= len(self.players) <= 5:
+            if self.min_players <= len(self.players) <= self.max_players:
                 if self.current_game_length is not None:
                     # set up rondel
                     self.rondel = Rondel(variant=self.variant, number_of_players=len(self.players), length=self.current_game_length)
                     # set up available buildings
-                    self.buildings = Buildings(variant, len(players))
+                    self.buildings = Buildings(self.variant, len(self.players))
                     # randomize turn order
 
                     # change prompt
                     self.prompt = "(O&L) Turn {}: ".format(self.rondel.current_turn)
+                    self.current_game_phase = BuildingRound.start
                 else:
                     print("You have to set the game length before you can start!")
             else:
-                print("You need at least 2, and no more than 5, players to play!")
+                print("You need at least {}, and no more than {}, players to play!".format(self.min_players, self.max_players))
         else:
             print("You have to set the variant for you start!")
 
@@ -599,7 +611,7 @@ def parse(arg):
 if __name__ == '__main__':
     OraetLaboraShell().cmdloop()
 
-
+'''
 # choose the variant
 variant = Variants.irish
 
@@ -626,3 +638,4 @@ for value in players[0].resources.values():
 
 players[0].available_actions(Actions.clear_land)
 players[0].available_actions(Actions.build)
+'''
