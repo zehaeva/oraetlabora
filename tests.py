@@ -60,15 +60,16 @@ class CardTest(unittest.TestCase):
 
 class FieldSpotTest(unittest.TestCase):
     def setUp(self):
+        self.card = oraetlabora.Card("Forest",
+                                     'Take Forest',
+                                     start_round=[oraetlabora.BuildingRound.start],
+                                     number_of_players=[0, 1, 2, 3, 4],
+                                     allowable_actions=[oraetlabora.Actions.clear_land],
+                                     build_locations=[oraetlabora.BuildLocation.meadow])
         self.spot = oraetlabora.FieldSpot(x=2,
                                           y=3,
                                           filed_type=oraetlabora.FieldType.plain,
-                                          card=oraetlabora.Card("Forest",
-                                                                'Take Forest',
-                                                                start_round=[oraetlabora.BuildingRound.start],
-                                                                number_of_players=[0, 1, 2, 3, 4],
-                                                                allowable_actions=[oraetlabora.Actions.clear_land],
-                                                                build_locations=[oraetlabora.BuildLocation.meadow]))
+                                          card=self.card)
 
     def test_x(self):
         self.assertTrue(self.spot.x is 2)
@@ -84,6 +85,7 @@ class FieldSpotTest(unittest.TestCase):
         self.assertTrue(self.spot.filed_type == oraetlabora.FieldType.plain)
         self.assertTrue(self.spot.filed_type is oraetlabora.FieldType.plain)
         self.assertTrue(self.spot.filed_type is not oraetlabora.FieldType.mountain)
+
 
 class ResourceTest(unittest.TestCase):
 
@@ -114,6 +116,30 @@ class ResourceTest(unittest.TestCase):
 
     def test_total_currency(self):
         self.assertTrue(self.resource.total_currency() is 1)
+
+
+class PlayFieldTest(unittest.TestCase):
+    def setUp(self):
+        self.play_field = oraetlabora.PlayField(height=2, width=2)
+
+    def test_height(self):
+        self.assertTrue(self.play_field.height is 2)
+        self.assertFalse(self.play_field.height is "2")
+        self.assertFalse(self.play_field.height is 0)
+        self.assertFalse(self.play_field.height is 10)
+
+    def test_width(self):
+        self.assertTrue(self.play_field.width is 2)
+        self.assertFalse(self.play_field.width is "2")
+        self.assertFalse(self.play_field.width is 0)
+        self.assertFalse(self.play_field.width is 10)
+
+    def test_list(self):
+        self.assertTrue(self.play_field.field[0][0]['building'] == oraetlabora.Card())
+        self.assertTrue(self.play_field.field[0][1]['building'] == oraetlabora.Card())
+        self.assertTrue(self.play_field.field[1][0]['building'] == oraetlabora.Card())
+        self.assertTrue(self.play_field.field[1][1]['building'] == oraetlabora.Card())
+
 
 if __name__ == '__main__':
     unittest.main()
