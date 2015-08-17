@@ -1,5 +1,6 @@
 from enum import Enum
 import cmd
+import random
 
 
 class Variants(Enum):
@@ -19,6 +20,14 @@ class Actions(Enum):
     place_prior = 4
     contract = 5
     buy_plot = 6
+
+
+class FieldType(Enum):
+    water = 1
+    coast = 2
+    plain = 3
+    hillside = 4
+    mountain = 5
 
 
 class BuildLocation(Enum):
@@ -61,7 +70,7 @@ class Resource:
         return self.name
 
     def __eq__(self, other):
-        return self.name == other
+        return self.__dict__ == other.__dict__
 
     def total_food(self):
         return self.quantity * self.food_value
@@ -149,6 +158,9 @@ class Card:
         if action in self.allowable_actions:
             pass
         pass
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
 
 
 class Buildings(dict):
@@ -277,14 +289,6 @@ class Buildings(dict):
         return my_return
 
 
-class FieldType(Enum):
-    water = 1
-    coast = 2
-    plain = 3
-    hillside = 4
-    mountain = 5
-
-
 class FieldSpot:
     def __init__(self, x, y, filed_type, card):
         self.x = x
@@ -299,7 +303,7 @@ class PlayField:
         self.width = width
         # I'm not sure I like this structure, I'm going to go with a list where each element has an x, y, type, and card spot
 
-        self.field = list(list({'building': Card()} for i in range(width)) for i in range(height))
+        self.field = list(list({'building': Card()} for j in range(width)) for i in range(height))
         # self.size_field()
 
     def size_field(self):
@@ -477,6 +481,7 @@ class Rondel:
         rp = RondelProgression()
         self.setup = rp.progression[number_of_players][length]
         self.current_turn = 0
+        self.current_player = 0
         self.variant = variant
         self.wheel = []
         for i in self.setup['wheel']:
@@ -507,6 +512,16 @@ class Rondel:
     def __repr__(self):
         return "Rondel:\nCurrentTurn {}\n{}".format(self.current_turn, self.wheel)
 
+
+class Game:
+    def __init__(self):
+        self.players = None
+        self.rondel = None
+        self.resources = None
+        self.buildings = None
+        self.variant = None
+
+
 # set up the Resources
 resources = Resources()
 
@@ -536,7 +551,7 @@ class OraetLaboraShell(cmd.Cmd):
 
     def do_setvariant(self, arg):
         ''' set which variant is being used, Irish or French '''
-        if self.current_game_length == BuildingRound.setup:
+        if self.current_game_phase is BuildingRound.setup:
             if self.variant is None:
                 if arg == 1 or arg == '1' or arg.lower() == 'irish':
                     print('setting Variant to Irish')
@@ -544,6 +559,8 @@ class OraetLaboraShell(cmd.Cmd):
                 else:
                     print('setting Variant to French')
                     self.variant = Variants.french
+        else:
+            print("Sorry, we're not in the setup phase!")
 
     def do_player(self, arg):
         ''' display all players or just one player if you provide a name '''
@@ -553,7 +570,7 @@ class OraetLaboraShell(cmd.Cmd):
 
     def do_addplayer(self, arg):
         ''' add player to a game '''
-        if self.current_game_length == BuildingRound.setup:
+        if self.current_game_phase == BuildingRound.setup:
             if len(self.players) == self.max_players:
                 print('You have the maximum amount of players!')
             else:
@@ -565,7 +582,7 @@ class OraetLaboraShell(cmd.Cmd):
 
     def do_removeplayer(self, arg):
         ''' Remove player from the game '''
-        if self.current_game_length == BuildingRound.setup:
+        if self.current_game_phase == BuildingRound.setup:
             if len(self.players) == 0:
                 print("there's no one to remove!")
             else:
@@ -573,7 +590,7 @@ class OraetLaboraShell(cmd.Cmd):
 
     def do_setlength(self, arg):
         ''' sets the length of the game, Short or Long '''
-        if self.current_game_length == BuildingRound.setup:
+        if self.current_game_phase == BuildingRound.setup:
             if arg == 1 or arg == '1' or arg.lower() == 'long':
                 print("Game Length set to Long")
                 self.current_game_length = GameLength.long
@@ -591,9 +608,19 @@ class OraetLaboraShell(cmd.Cmd):
                     # set up available buildings
                     self.buildings = Buildings(self.variant, len(self.players))
                     # randomize turn order
+                    random.shuffle(self.players)
+
+                    print('Starting a new game of Ora et Labora!')
+                    print('Variant: {}'.format(self.variant))
+                    print('Length: {}'.format(self.current_game_length))
+                    print('Turn order:')
+                    j = 1
+                    for i in self.players:
+                        print("({}) {}".format(j, i.name))
+                        j += 1
 
                     # change prompt
-                    self.prompt = "(O&L) Turn {}: ".format(self.rondel.current_turn)
+                    self.prompt = "(O&L) Turn {}: {}:".format(self.rondel.current_turn, self.players[self.rondel.current_player].name)
                     self.current_game_phase = BuildingRound.start
                 else:
                     print("You have to set the game length before you can start!")
