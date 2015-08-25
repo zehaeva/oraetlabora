@@ -1,4 +1,4 @@
-This is my implimention of Ora et Labor by Uwe Rosenbuerg in python.
+This is my implimention of Ora et Labor by Uwe Rosenberg in python.
 
 
 
