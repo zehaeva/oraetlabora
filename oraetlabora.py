@@ -465,14 +465,15 @@ class WheelSpace:
 
 class RondelProgression:
     def __init__(self):
-        self.progression = {1: {GameLength.long: {},
+        # one and two players have really special rules, so I'm going to leave them out for a while
+        self.progression = {1: {GameLength.long: {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 11, 'stone': 18, 'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
                                 GameLength.short: {}},
-                            2: {GameLength.long: {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 8, 'stone': 13, 'wheel': [0, 1, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
-                                GameLength.short: {}},
-                            3: {GameLength.long: {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 8, 'stone': 13, 'wheel': [0, 1, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
-                                GameLength.short: {}},
-                            4: {GameLength.long: {'turns': 25, 'a': 7, 'b': 10, 'c': 16, 'd': 19, 'e': 25, 'grape': 8, 'stone': 13, 'wheel': [0]},
-                                GameLength.short: {},}
+                            2: {GameLength.long: {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 11, 'stone': 18, 'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
+                                GameLength.short: {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 11, 'stone': 18, 'wheel': [0, 1, 2, 2, 3, 4, 4, 5, 6, 6, 7, 8, 10]}},
+                            3: {GameLength.long: {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 8, 'stone': 13, 'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
+                                GameLength.short: {'turns': 13, 'a': 3, 'b': 5, 'c': 7, 'd': 9, 'e': 13, 'grape': 4, 'stone': 6, 'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]}},
+                            4: {GameLength.long: {'turns': 25, 'a': 7, 'b': 10, 'c': 16, 'd': 19, 'e': 25, 'grape': 8, 'stone': 13, 'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
+                                GameLength.short: {'turns': 13, 'a': 3, 'b': 5, 'c': 7, 'd': 9, 'e': 13, 'grape': 4, 'stone': 6, 'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]}}
                             }
 
 
@@ -529,7 +530,7 @@ resources = Resources()
 class OraetLaboraShell(cmd.Cmd):
     intro = 'Welcome to Ora et Labora! Type help or ? to list commands.\n'
     prompt = '(O&L) '
-    min_players = 1
+    min_players = 3
     max_players = 4
     variant = None
     players = list()
@@ -628,6 +629,36 @@ class OraetLaboraShell(cmd.Cmd):
                 print("You need at least {}, and no more than {}, players to play!".format(self.min_players, self.max_players))
         else:
             print("You have to set the variant for you start!")
+
+    def do_action(self, arg):
+        ''' clear x y: clears specified field
+            brother x y: places lay brother at specified coordinate
+            brother building: places lay brother at specified building
+            prior x y: places prior at specified coordinate
+            prior building: places prior at specified building
+            contract player building: contract a player to use a building
+            build building x y: build a building at the specified coordinates
+            buy landscape x y: buy a landscape and place it at the specified coordinates
+        '''
+        if self.current_game_phase != BuildingRound.setup:
+            args = arg.split()
+            if 'brother' in args[0]:
+                # check to see if the brother is available
+                pass
+            elif 'clear' in args[0]:
+                # clear the land!
+                pass
+            elif 'prior' in args[0]:
+                # check to see if the prior is available first
+                pass
+            elif 'contract' in args[0]:
+                pass
+            elif 'build' in args[0]:
+                pass
+            elif 'buy' in args[0]:
+                pass
+            else:
+                print("Sorry I don't recognize the command {}".format(args))
 
 
 def parse(arg):
