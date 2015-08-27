@@ -47,6 +47,15 @@ class BuildingRound(Enum):
     d = 5
     e = 6
 
+class Building(Enum):
+    forest = 0
+    peat_bog = 1
+    clay_mound = 2
+    cloister_office = 3
+    farm_yard = 4
+    brewery = 5
+    cloister_courtyard = 6
+
 
 class Resource:
     def __init__(self, name='', description='', basic=False, food_value=0, fuel_value=0.0, currency_value=0, victory_points=0.0, variants=[Variants.irish, Variants.french],
@@ -482,7 +491,8 @@ class Rondel:
         rp = RondelProgression()
         self.setup = rp.progression[number_of_players][length]
         self.current_turn = 0
-        self.current_player = 0
+        self.current_player_index = 0
+        self.players = None
         self.variant = variant
         self.wheel = []
         for i in self.setup['wheel']:
@@ -509,6 +519,12 @@ class Rondel:
                     player.add_resource(wheel_resource)
                     self.wheel[0].resources.append(wheel_resource.set_quantity(0))
                     break
+
+    def current_player(self):
+        if self.players is None:
+            return self.current_player_index
+        else:
+            return self.players[self.current_player_index]
 
     def __repr__(self):
         return "Rondel:\nCurrentTurn {}\n{}".format(self.current_turn, self.wheel)
@@ -621,7 +637,8 @@ class OraetLaboraShell(cmd.Cmd):
                         j += 1
 
                     # change prompt
-                    self.prompt = "(O&L) Turn {}: {}:".format(self.rondel.current_turn, self.players[self.rondel.current_player].name)
+                    self.rondel.players = self.players
+                    self.prompt = "(O&L) Turn {}: {}:".format(self.rondel.current_turn, self.rondel.current_player().name)
                     self.current_game_phase = BuildingRound.start
                 else:
                     print("You have to set the game length before you can start!")
@@ -629,6 +646,14 @@ class OraetLaboraShell(cmd.Cmd):
                 print("You need at least {}, and no more than {}, players to play!".format(self.min_players, self.max_players))
         else:
             print("You have to set the variant for you start!")
+
+    def do_autostart(self, arg):
+        self.do_setvariant('irish')
+        self.do_setlength('long')
+        self.do_addplayer('howard')
+        self.do_addplayer('jim')
+        self.do_addplayer('andrew')
+        self.do_start('')
 
     def do_action(self, arg):
         ''' clear x y: clears specified field
@@ -647,7 +672,9 @@ class OraetLaboraShell(cmd.Cmd):
                 pass
             elif 'clear' in args[0]:
                 # clear the land!
-                pass
+                if self.rondel.current_player().land.field[0][0]['building'] == self.buildings['peat bog']:
+                    print('CLEARING PEAT!')
+                    pass
             elif 'prior' in args[0]:
                 # check to see if the prior is available first
                 pass
