@@ -47,6 +47,7 @@ class BuildingRound(Enum):
     d = 5
     e = 6
 
+
 class Building(Enum):
     forest = 0
     peat_bog = 1
@@ -55,6 +56,83 @@ class Building(Enum):
     farm_yard = 4
     brewery = 5
     cloister_courtyard = 6
+    priory = 7
+    grain_storage = 8
+    granary = 9
+    windmill = 10
+    malthouse = 11
+    bakery = 12
+    fuel_merchant = 13
+    peat_coal_kiln = 14
+    market = 15
+    false_lighthouse = 16
+    cloister_garden = 17
+    spinning_mill = 18
+    carpentry = 19
+    cottage = 20
+    houseboat = 21
+    harbor_promenade = 22
+    stone_merchant = 23
+    builders_market = 24
+    grapevine = 25
+    sacred_site = 26
+    financed_estate = 27
+    druids_house = 28
+    cloister_chapter_house = 29
+    cloister_library = 30
+    scriptorium = 31
+    cloister_workshop = 32
+    slaughterhouse = 33
+#   B Buildings
+    inn = 34
+    alehouse = 35
+    winery = 36
+    whiskey_distillery = 37
+    quarry = 38
+    bathhouse = 39
+    locutory = 40
+    cloister_church = 41
+    chapel = 42
+    chamber_of_wonders = 43
+    portico = 44
+    shipyard = 45
+#   C Buildings
+    palace = 46
+    grand_manor = 47
+    castle = 48
+    c_quarry = 49
+    forest_hut = 50
+    town_estate = 51
+    refectory = 52
+    c_grapevine = 53
+    coal_harbor = 54
+    colefactory = 55
+    filial_church = 56
+    shipping_company = 57
+    cooperage = 58
+#   D Buildings
+    sacristy = 59
+    forgers_workshop = 60
+    round_tower = 61
+    pilgrimage_site = 62
+    camera = 63
+    dormitory = 64
+    bulwark = 65
+    printing_office = 66
+    festival_ground = 67
+    estate = 68
+    hospice = 69
+    guesthouse = 70
+    house_of_the_brotherhood = 71
+#   settlements
+    shanty_town = 72
+    farming_village = 73
+    market_town = 74
+    fishing_village = 75
+    artists_colony = 76
+    hamlet = 77
+    village = 78
+    hilltop_village = 79
 
 
 class Resource:
@@ -174,96 +252,96 @@ class Card:
 
 class Buildings(dict):
     def __init__(self, variant, number_of_players):
-        self['forest'] = Card('Forest', 'Take Forest', start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5], allowable_actions=[Actions.clear_land])
-        self['peat bog'] = Card('Peat Bog', 'Take Peat', start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5], allowable_actions=[Actions.clear_land])
-        self['clay mound'] = Card('Clay Mound', 'Take Clay', 3, start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5])
-        self['cloister office'] = Card('Cloister Office', 'Take Gold', 2, start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5])
-        self['farm yard'] = Card('Farm Yard', 'Take Straw or Take Sheep', 2, start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5])
+        self[Building.forest] = Card('Forest', 'Take Forest', start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5], allowable_actions=[Actions.clear_land])
+        self[Building.peat_bog] = Card('Peat Bog', 'Take Peat', start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5], allowable_actions=[Actions.clear_land])
+        self[Building.clay_mound] = Card('Clay Mound', 'Take Clay', 3, start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5])
+        self[Building.cloister_office] = Card('Cloister Office', 'Take Gold', 2, start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5])
+        self[Building.farm_yard] = Card('Farm Yard', 'Take Straw or Take Sheep', 2, start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5])
 
     #   Start Buildings
-        self['brewery'] = Card('Brewery', '1 malt, 1 grain -> 1 beer and then/or 1 beer -1x-> 7 coins', victory_points=9, village_points=7, variants=[Variants.irish],
-                               build_cost=[resources['stone'].set_quantity(2), resources['straw'].set_quantity(1)], start_round=[BuildingRound.start],
-                               number_of_players=[1, 2, 3, 4])
-        self['cloister courtyard'] = Card('Cloister Courtyard', '3 different goods -1x-> 6 identical basic goods', victory_points=4, village_points=4,
-                                          build_cost=[resources['wood'].set_quantity(2)], start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4])
-        self['priory'] = Card(start_round=[BuildingRound.start], number_of_players=[1, 3, 4])
-        self['grain storage'] = Card(start_round=[BuildingRound.start], variants=[Variants.french], number_of_players=[1, 4])
-        self['granary'] = Card(start_round=[BuildingRound.start], variants=[Variants.irish], number_of_players=[1, 4])
-        self['windmill'] = Card(start_round=[BuildingRound.start], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
-        self['malthouse'] = Card(start_round=[BuildingRound.start], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
-        self['bakery'] = Card(start_round=[BuildingRound.start], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
-        self['fuel merchant'] = Card(start_round=[BuildingRound.start], number_of_players=[1, 3, 4])
-        self['peat coal kiln'] = Card(start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4])
-        self['market'] = Card(start_round=[BuildingRound.start], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
-        self['false lighthouse'] = Card(start_round=[BuildingRound.start], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
-        self['cloister garden'] = Card(start_round=[BuildingRound.start], variants=[Variants.french], number_of_players=[1, 3, 4])
-        self['spinning mill'] = Card(start_round=[BuildingRound.start], variants=[Variants.irish], number_of_players=[1, 3, 4])
-        self['carpentry'] = Card(start_round=[BuildingRound.start], variants=[Variants.french], number_of_players=[4])
-        self['cottage'] = Card(start_round=[BuildingRound.start], variants=[Variants.irish], number_of_players=[1, 4])
-        self['houseboat'] = Card(start_round=[BuildingRound.start], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
-        self['harbor promenade'] = Card(start_round=[BuildingRound.start], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
-        self['stone merchant'] = Card(start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4])
-        self['builders` market'] = Card(start_round=[BuildingRound.start], number_of_players=[1, 4])
+        self[Building.brewery] = Card('Brewery', '1 malt, 1 grain -> 1 beer and then/or 1 beer -1x-> 7 coins', victory_points=9, village_points=7, variants=[Variants.irish],
+                                      build_cost=[resources['stone'].set_quantity(2), resources['straw'].set_quantity(1)], start_round=[BuildingRound.start],
+                                      number_of_players=[1, 2, 3, 4])
+        self[Building.cloister_courtyard] = Card('Cloister Courtyard', '3 different goods -1x-> 6 identical basic goods', victory_points=4, village_points=4,
+                                                 build_cost=[resources['wood'].set_quantity(2)], start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4])
+        self[Building.priory] = Card(start_round=[BuildingRound.start], number_of_players=[1, 3, 4])
+        self[Building.grain_storage] = Card(start_round=[BuildingRound.start], variants=[Variants.french], number_of_players=[1, 4])
+        self[Building.granary] = Card(start_round=[BuildingRound.start], variants=[Variants.irish], number_of_players=[1, 4])
+        self[Building.windmill] = Card(start_round=[BuildingRound.start], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
+        self[Building.malthouse] = Card(start_round=[BuildingRound.start], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
+        self[Building.bakery] = Card(start_round=[BuildingRound.start], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
+        self[Building.fuel_merchant] = Card(start_round=[BuildingRound.start], number_of_players=[1, 3, 4])
+        self[Building.peat_coal_kiln] = Card(start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4])
+        self[Building.market] = Card(start_round=[BuildingRound.start], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
+        self[Building.false_lighthouse] = Card(start_round=[BuildingRound.start], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
+        self[Building.cloister_garden] = Card(start_round=[BuildingRound.start], variants=[Variants.french], number_of_players=[1, 3, 4])
+        self[Building.spinning_mill] = Card(start_round=[BuildingRound.start], variants=[Variants.irish], number_of_players=[1, 3, 4])
+        self[Building.carpentry] = Card(start_round=[BuildingRound.start], variants=[Variants.french], number_of_players=[4])
+        self[Building.cottage] = Card(start_round=[BuildingRound.start], variants=[Variants.irish], number_of_players=[1, 4])
+        self[Building.houseboat] = Card(start_round=[BuildingRound.start], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
+        self[Building.harbor_promenade] = Card(start_round=[BuildingRound.start], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
+        self[Building.stone_merchant] = Card(start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4])
+        self[Building.builders_market] = Card(start_round=[BuildingRound.start], number_of_players=[1, 4])
     #   A Buildings
-        self['grapevine'] = Card(name='Grapevine', start_round=[BuildingRound.a, BuildingRound.c], variants=[Variants.french], number_of_players=[2, 3, 4])
-        self['sacred site'] = Card(name='Sacred Site', start_round=[BuildingRound.a], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
-        self['financed estate'] = Card(name='Financed Estate', start_round=[BuildingRound.a], variants=[Variants.french], number_of_players=[1, 4])
-        self['druids house'] = Card(name='Druids House', start_round=[BuildingRound.a], variants=[Variants.irish], number_of_players=[1, 4])
-        self['cloister chapter house'] = Card(name='Cloister Chapter House', start_round=[BuildingRound.a], number_of_players=[1, 3, 4])
-        self['cloister library'] = Card(name='Cloister Library', start_round=[BuildingRound.a], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
-        self['scriptorium'] = Card(name='Scriptorium', start_round=[BuildingRound.a], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
-        self['cloister workshop'] = Card(name='Cloister Workshop', start_round=[BuildingRound.a], number_of_players=[1, 2, 3, 4])
-        self['slaughterhouse'] = Card(name='Slaughterhouse', start_round=[BuildingRound.a], number_of_players=[1, 2, 3, 4])
+        self[Building.grapevine] = Card(name='Grapevine', start_round=[BuildingRound.a, BuildingRound.c], variants=[Variants.french], number_of_players=[2, 3, 4])
+        self[Building.sacred_site] = Card(name='Sacred Site', start_round=[BuildingRound.a], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
+        self[Building.financed_estate] = Card(name='Financed Estate', start_round=[BuildingRound.a], variants=[Variants.french], number_of_players=[1, 4])
+        self[Building.druids_house] = Card(name='Druids House', start_round=[BuildingRound.a], variants=[Variants.irish], number_of_players=[1, 4])
+        self[Building.cloister_chapter_house] = Card(name='Cloister Chapter House', start_round=[BuildingRound.a], number_of_players=[1, 3, 4])
+        self[Building.cloister_library] = Card(name='Cloister Library', start_round=[BuildingRound.a], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
+        self[Building.scriptorium] = Card(name='Scriptorium', start_round=[BuildingRound.a], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
+        self[Building.cloister_workshop] = Card(name='Cloister Workshop', start_round=[BuildingRound.a], number_of_players=[1, 2, 3, 4])
+        self[Building.slaughterhouse] = Card(name='Slaughterhouse', start_round=[BuildingRound.a], number_of_players=[1, 2, 3, 4])
     #   B Buildings
-        self['inn'] = Card(start_round=[BuildingRound.b], variants=[Variants.french], number_of_players=[1, 3, 4])
-        self['alehouse'] = Card(start_round=[BuildingRound.b], variants=[Variants.irish], number_of_players=[1, 3, 4])
-        self['winery'] = Card(start_round=[BuildingRound.b], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
-        self['whiskey distillery'] = Card(start_round=[BuildingRound.b], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
-        self['quarry'] = Card(start_round=[BuildingRound.b], number_of_players=[1, 2, 3, 4])
-        self['bathhouse'] = Card(start_round=[BuildingRound.b], variants=[Variants.french], number_of_players=[1, 4])
-        self['locutory'] = Card(start_round=[BuildingRound.b], variants=[Variants.irish], number_of_players=[1, 4])
-        self['cloister church'] = Card(start_round=[BuildingRound.b], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
-        self['chapel'] = Card(start_round=[BuildingRound.b], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
-        self['chamber of wonders'] = Card(start_round=[BuildingRound.b], variants=[Variants.french], number_of_players=[1, 4])
-        self['portico'] = Card(start_round=[BuildingRound.b], variants=[Variants.irish], number_of_players=[1, 4])
-        self['shipyard'] = Card(start_round=[BuildingRound.b], number_of_players=[1, 2, 3, 4])
+        self[Building.inn] = Card(start_round=[BuildingRound.b], variants=[Variants.french], number_of_players=[1, 3, 4])
+        self[Building.alehouse] = Card(start_round=[BuildingRound.b], variants=[Variants.irish], number_of_players=[1, 3, 4])
+        self[Building.winery] = Card(start_round=[BuildingRound.b], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
+        self[Building.whiskey_distillery] = Card(start_round=[BuildingRound.b], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
+        self[Building.quarry] = Card(start_round=[BuildingRound.b], number_of_players=[1, 2, 3, 4])
+        self[Building.bathhouse] = Card(start_round=[BuildingRound.b], variants=[Variants.french], number_of_players=[1, 4])
+        self[Building.locutory] = Card(start_round=[BuildingRound.b], variants=[Variants.irish], number_of_players=[1, 4])
+        self[Building.cloister_church] = Card(start_round=[BuildingRound.b], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
+        self[Building.chapel] = Card(start_round=[BuildingRound.b], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
+        self[Building.chamber_of_wonders] = Card(start_round=[BuildingRound.b], variants=[Variants.french], number_of_players=[1, 4])
+        self[Building.portico] = Card(start_round=[BuildingRound.b], variants=[Variants.irish], number_of_players=[1, 4])
+        self[Building.shipyard] = Card(start_round=[BuildingRound.b], number_of_players=[1, 2, 3, 4])
     #   C Buildings
-        self['palace'] = Card(start_round=[BuildingRound.c], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
-        self['grand manor'] = Card(start_round=[BuildingRound.c], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
-        self['castle'] = Card(start_round=[BuildingRound.c], number_of_players=[1, 2, 3, 4])
-        self['c-quarry'] = Card(start_round=[BuildingRound.c], variants=[Variants.french], number_of_players=[3, 4])
-        self['forest hut'] = Card(start_round=[BuildingRound.c], variants=[Variants.irish], number_of_players=[1, 3, 4])
-        self['town estate'] = Card(start_round=[BuildingRound.c], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
-        self['refectory'] = Card(start_round=[BuildingRound.c], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
-        self['c-grapevine'] = Card(start_round=[BuildingRound.c], number_of_players=[4])
-        self['coal harbor'] = Card(start_round=[BuildingRound.c], variants=[Variants.irish], number_of_players=[1, 4])
-        self['colefactory'] = Card(start_round=[BuildingRound.c], variants=[Variants.french], number_of_players=[1, 3, 4])
-        self['filial church'] = Card(start_round=[BuildingRound.c], variants=[Variants.irish], number_of_players=[1, 3, 4])
-        self['shipping company'] = Card(start_round=[BuildingRound.c], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
-        self['cooperage'] = Card(start_round=[BuildingRound.c], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
+        self[Building.palace] = Card(start_round=[BuildingRound.c], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
+        self[Building.grand_manor] = Card(start_round=[BuildingRound.c], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
+        self[Building.castle] = Card(start_round=[BuildingRound.c], number_of_players=[1, 2, 3, 4])
+        self[Building.c_quarry] = Card(start_round=[BuildingRound.c], variants=[Variants.french], number_of_players=[3, 4])
+        self[Building.forest_hut] = Card(start_round=[BuildingRound.c], variants=[Variants.irish], number_of_players=[1, 3, 4])
+        self[Building.town_estate] = Card(start_round=[BuildingRound.c], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
+        self[Building.refectory] = Card(start_round=[BuildingRound.c], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
+        self[Building.c_grapevine] = Card(start_round=[BuildingRound.c], number_of_players=[4])
+        self[Building.coal_harbor] = Card(start_round=[BuildingRound.c], variants=[Variants.irish], number_of_players=[1, 4])
+        self[Building.colefactory] = Card(start_round=[BuildingRound.c], variants=[Variants.french], number_of_players=[1, 3, 4])
+        self[Building.filial_church] = Card(start_round=[BuildingRound.c], variants=[Variants.irish], number_of_players=[1, 3, 4])
+        self[Building.shipping_company] = Card(start_round=[BuildingRound.c], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
+        self[Building.cooperage] = Card(start_round=[BuildingRound.c], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
     #   D Buildings
-        self['sacristy'] = Card(start_round=[BuildingRound.d], number_of_players=[1, 2, 3, 4])
-        self['forgers workshop'] = Card(start_round=[BuildingRound.d], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
-        self['round tower'] = Card(start_round=[BuildingRound.d], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
-        self['pilgrimage site'] = Card(start_round=[BuildingRound.d], variants=[Variants.french], number_of_players=[1, 3, 4])
-        self['camera'] = Card(start_round=[BuildingRound.d], variants=[Variants.irish], number_of_players=[1, 3, 4])
-        self['dormitory'] = Card(start_round=[BuildingRound.d], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
-        self['bulwark'] = Card(start_round=[BuildingRound.d], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
-        self['printing office'] = Card(start_round=[BuildingRound.d], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
-        self['festival ground'] = Card(start_round=[BuildingRound.d], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
-        self['estate'] = Card(start_round=[BuildingRound.d], number_of_players=[1, 4])
-        self['hospice'] = Card(start_round=[BuildingRound.d], variants=[Variants.french], number_of_players=[1, 3, 4])
-        self['guesthouse'] = Card(start_round=[BuildingRound.d], variants=[Variants.irish], number_of_players=[1, 3, 4])
-        self['house of the brotherhood'] = Card(start_round=[BuildingRound.d], number_of_players=[1, 2, 3, 4])
+        self[Building.sacristy] = Card(start_round=[BuildingRound.d], number_of_players=[1, 2, 3, 4])
+        self[Building.forgers_workshop] = Card(start_round=[BuildingRound.d], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
+        self[Building.round_tower] = Card(start_round=[BuildingRound.d], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
+        self[Building.pilgrimage_site] = Card(start_round=[BuildingRound.d], variants=[Variants.french], number_of_players=[1, 3, 4])
+        self[Building.camera] = Card(start_round=[BuildingRound.d], variants=[Variants.irish], number_of_players=[1, 3, 4])
+        self[Building.dormitory] = Card(start_round=[BuildingRound.d], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
+        self[Building.bulwark] = Card(start_round=[BuildingRound.d], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
+        self[Building.printing_office] = Card(start_round=[BuildingRound.d], variants=[Variants.french], number_of_players=[1, 2, 3, 4])
+        self[Building.festival_ground] = Card(start_round=[BuildingRound.d], variants=[Variants.irish], number_of_players=[1, 2, 3, 4])
+        self[Building.estate] = Card(start_round=[BuildingRound.d], number_of_players=[1, 4])
+        self[Building.hospice] = Card(start_round=[BuildingRound.d], variants=[Variants.french], number_of_players=[1, 3, 4])
+        self[Building.guesthouse] = Card(start_round=[BuildingRound.d], variants=[Variants.irish], number_of_players=[1, 3, 4])
+        self[Building.house_of_the_brotherhood] = Card(start_round=[BuildingRound.d], number_of_players=[1, 2, 3, 4])
     #   settlements
-        self['shanty town'] = Card(name='Shanty Town', start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4], allowable_actions=[])
-        self['farming village'] = Card(name='Farming Village', start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4], allowable_actions=[])
-        self['market town'] = Card(name='Market Town', start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4], allowable_actions=[])
-        self['fishing village'] = Card(name='Fishing Village', start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4], allowable_actions=[])
-        self['artists colony'] = Card(name='Artists Colony', start_round=[BuildingRound.a], number_of_players=[1, 2, 3, 4], allowable_actions=[])
-        self['hamlet'] = Card(name='Hamlet', start_round=[BuildingRound.b], number_of_players=[1, 2, 3, 4], allowable_actions=[])
-        self['village'] = Card(name='Village', start_round=[BuildingRound.c], number_of_players=[1, 2, 3, 4], allowable_actions=[])
-        self['hilltop village'] = Card(name='Hilltop Village', start_round=[BuildingRound.d], number_of_players=[1, 2, 3, 4], allowable_actions=[])
+        self[Building.shanty_town] = Card(name='Shanty Town', start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4], allowable_actions=[])
+        self[Building.farming_village] = Card(name='Farming Village', start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4], allowable_actions=[])
+        self[Building.market_town] = Card(name='Market Town', start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4], allowable_actions=[])
+        self[Building.fishing_village] = Card(name='Fishing Village', start_round=[BuildingRound.start], number_of_players=[1, 2, 3, 4], allowable_actions=[])
+        self[Building.artists_colony] = Card(name='Artists Colony', start_round=[BuildingRound.a], number_of_players=[1, 2, 3, 4], allowable_actions=[])
+        self[Building.hamlet] = Card(name='Hamlet', start_round=[BuildingRound.b], number_of_players=[1, 2, 3, 4], allowable_actions=[])
+        self[Building.village] = Card(name='Village', start_round=[BuildingRound.c], number_of_players=[1, 2, 3, 4], allowable_actions=[])
+        self[Building.hilltop_village] = Card(name='Hilltop Village', start_round=[BuildingRound.d], number_of_players=[1, 2, 3, 4], allowable_actions=[])
 
         self.variant = variant
         self.number_of_players = number_of_players
@@ -349,14 +427,14 @@ class PlayField:
 class StartField(PlayField):
     def __init__(self, buildings):
         PlayField.__init__(self, 2, 5)
-        self.setup(card=buildings['forest'], x=0, y=1, field=FieldType.plain)
-        self.setup(card=buildings['forest'], x=0, y=2, field=FieldType.plain)
-        self.setup(card=buildings['forest'], x=1, y=1, field=FieldType.plain)
-        self.setup(card=buildings['peat bog'], x=0, y=0, field=FieldType.plain)
-        self.setup(card=buildings['peat bog'], x=1, y=0, field=FieldType.plain)
-        self.setup(card=buildings['cloister office'], x=1, y=4, field=FieldType.plain)
-        self.setup(card=buildings['clay mound'], x=0, y=4, field=FieldType.plain)
-        self.setup(card=buildings['farm yard'], x=1, y=2, field=FieldType.plain)
+        self.setup(card=buildings[Building.forest], x=0, y=1, field=FieldType.plain)
+        self.setup(card=buildings[Building.forest], x=0, y=2, field=FieldType.plain)
+        self.setup(card=buildings[Building.forest], x=1, y=1, field=FieldType.plain)
+        self.setup(card=buildings[Building.peat_bog], x=0, y=0, field=FieldType.plain)
+        self.setup(card=buildings[Building.peat_bog], x=1, y=0, field=FieldType.plain)
+        self.setup(card=buildings[Building.cloister_office], x=1, y=4, field=FieldType.plain)
+        self.setup(card=buildings[Building.clay_mound], x=0, y=4, field=FieldType.plain)
+        self.setup(card=buildings[Building.farm_yard], x=1, y=2, field=FieldType.plain)
         self.setup(card=Card(allowable_actions=[Actions.build]), x=0, y=3, field=FieldType.plain)
         self.setup(card=Card(allowable_actions=[Actions.build]), x=1, y=3, field=FieldType.plain)
 
@@ -672,8 +750,9 @@ class OraetLaboraShell(cmd.Cmd):
                 pass
             elif 'clear' in args[0]:
                 # clear the land!
-                if self.rondel.current_player().land.field[0][0]['building'] == self.buildings['peat bog']:
+                if self.rondel.current_player().land.field[0][0]['building'] == self.buildings[Building.peat_bog]:
                     print('CLEARING PEAT!')
+                    self.rondel.next_turn()
                     pass
             elif 'prior' in args[0]:
                 # check to see if the prior is available first
