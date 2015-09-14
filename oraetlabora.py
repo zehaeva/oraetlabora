@@ -13,13 +13,19 @@ class GameLength(Enum):
     short = 2
 
 
+def clear_peat(rondel, player):
+    return rondel.take_resource(player=player, resource=resources['peat'])
+
+
 class Actions(Enum):
-    clear_land = 1
-    build = 2
-    place_brother = 3
-    place_prior = 4
-    contract = 5
-    buy_plot = 6
+    clear_land = 0
+    clear_peat = 1
+    clear_wood = 2
+    build = 3
+    place_brother = 4
+    place_prior = 5
+    contract = 6
+    buy_plot = 7
 
 
 class FieldType(Enum):
@@ -157,7 +163,10 @@ class Resource:
         return self.name
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        if isinstance(other, str):
+            return self.name == other
+        else:
+            return self.__dict__ == other.__dict__
 
     def total_food(self):
         return self.quantity * self.food_value
@@ -241,9 +250,10 @@ class Card:
     def __str__(self):
         return '{}: {}'.format(self.name, self.description)
 
-    def take_action(self, action):
+    def take_action(self, action, rondel):
         if action in self.allowable_actions:
-            pass
+            if action is Actions.place_brother:
+                pass
         pass
 
     def __eq__(self, other):
@@ -254,7 +264,8 @@ class Buildings(dict):
     def __init__(self, variant, number_of_players):
         self[Building.forest] = Card('Forest', 'Take Forest', start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5], allowable_actions=[Actions.clear_land])
         self[Building.peat_bog] = Card('Peat Bog', 'Take Peat', start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5], allowable_actions=[Actions.clear_land])
-        self[Building.clay_mound] = Card('Clay Mound', 'Take Clay', 3, start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5])
+        self[Building.clay_mound] = Card('Clay Mound', 'Take Clay', 3, start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5],
+                                         allowable_actions=[Actions.place_brother, Actions.place_prior])
         self[Building.cloister_office] = Card('Cloister Office', 'Take Gold', 2, start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5])
         self[Building.farm_yard] = Card('Farm Yard', 'Take Straw or Take Sheep', 2, start_round=[BuildingRound.start], number_of_players=[0, 1, 2, 3, 4, 5])
 
@@ -553,14 +564,14 @@ class WheelSpace:
 class RondelProgression:
     def __init__(self):
         # one and two players have really special rules, so I'm going to leave them out for a while
-        self.progression = {1: {GameLength.long: {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 11, 'stone': 18, 'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
+        self.progression = {1: {GameLength.long:  {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 11, 'stone': 18, 'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
                                 GameLength.short: {}},
-                            2: {GameLength.long: {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 11, 'stone': 18, 'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
+                            2: {GameLength.long:  {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 11, 'stone': 18, 'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
                                 GameLength.short: {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 11, 'stone': 18, 'wheel': [0, 1, 2, 2, 3, 4, 4, 5, 6, 6, 7, 8, 10]}},
-                            3: {GameLength.long: {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 8, 'stone': 13, 'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
-                                GameLength.short: {'turns': 13, 'a': 3, 'b': 5, 'c': 7, 'd': 9, 'e': 13, 'grape': 4, 'stone': 6, 'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]}},
-                            4: {GameLength.long: {'turns': 25, 'a': 7, 'b': 10, 'c': 16, 'd': 19, 'e': 25, 'grape': 8, 'stone': 13, 'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
-                                GameLength.short: {'turns': 13, 'a': 3, 'b': 5, 'c': 7, 'd': 9, 'e': 13, 'grape': 4, 'stone': 6, 'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]}}
+                            3: {GameLength.long:  {'turns': 25, 'a': 6, 'b': 11, 'c': 15, 'd': 20, 'e': 25, 'grape': 8,  'stone': 13, 'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
+                                GameLength.short: {'turns': 13, 'a': 3, 'b': 5,  'c': 7,  'd': 9,  'e': 13, 'grape': 4,  'stone': 6,  'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]}},
+                            4: {GameLength.long:  {'turns': 25, 'a': 7, 'b': 10, 'c': 16, 'd': 19, 'e': 25, 'grape': 8,  'stone': 13, 'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]},
+                                GameLength.short: {'turns': 13, 'a': 3, 'b': 5,  'c': 7,  'd': 9,  'e': 13, 'grape': 4,  'stone': 6,  'wheel': [0, 2, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 10]}}
                             }
 
 
@@ -590,7 +601,7 @@ class Rondel:
             self.wheel[i-1].resources.clear()
 
     def take_resource(self, player, resource):
-        for i in range(14, 0, -1):
+        for i in range(13, 0, -1):
             for wheel_resource in self.wheel[i-1].resources:
                 if resource == wheel_resource:
                     self.wheel[i-1].resources.remove(wheel_resource)
@@ -751,7 +762,9 @@ class OraetLaboraShell(cmd.Cmd):
             elif 'clear' in args[0]:
                 # clear the land!
                 if self.rondel.current_player().land.field[0][0]['building'] == self.buildings[Building.peat_bog]:
-                    print('CLEARING PEAT!')
+                    self.rondel.take_resource(self.rondel.current_player(), self.resources['peat'])
+                    self.rondel.current_player().land.remove_card(0, 0)
+                    print('{player_name} has cleared {resource_name} @ ({x},{y}) and received {resource_amount} {resource_name}'.format(self.rondel.current_player().name, 'peat', 0, 0, 0, 'peat'))
                     self.rondel.next_turn()
                     pass
             elif 'prior' in args[0]:
