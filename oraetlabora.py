@@ -541,7 +541,7 @@ class Player:
                 item.quantity += resource.quantity
                 found = True
         if not found:
-            self.resources.append(resource)
+            self.resources[resource.name] = resource
 
         print('Player {player_name} took {resource_quantity} {resource_name}'.format(player_name=self.name, resource_quantity=resource.quantity, resource_name=resource.name))
 
@@ -602,12 +602,15 @@ class Rondel:
 
     def take_resource(self, player, resource):
         for i in range(13, 0, -1):
+            found = False
             for wheel_resource in self.wheel[i-1].resources:
                 if resource == wheel_resource:
-                    self.wheel[i-1].resources.remove(wheel_resource)
                     player.add_resource(wheel_resource)
-                    self.wheel[0].resources.append(wheel_resource.set_quantity(0))
+                    found = True
                     break
+            if found:
+                self.wheel[i-1].resources.remove(wheel_resource)
+                self.wheel[0].resources.append(wheel_resource.set_quantity(0))
 
     def current_player(self):
         if self.players is None:
@@ -744,6 +747,12 @@ class OraetLaboraShell(cmd.Cmd):
         self.do_addplayer('andrew')
         self.do_start('')
 
+    def do_viewplot(self, arg):
+
+        if self.current_game_phase != BuildingRound.setup:
+            args = arg.split()
+            print(self.rondel.current_player().land)
+
     def do_action(self, arg):
         ''' clear x y: clears specified field
             brother x y: places lay brother at specified coordinate
@@ -764,7 +773,8 @@ class OraetLaboraShell(cmd.Cmd):
                 if self.rondel.current_player().land.field[0][0]['building'] == self.buildings[Building.peat_bog]:
                     self.rondel.take_resource(self.rondel.current_player(), self.resources['peat'])
                     self.rondel.current_player().land.remove_card(0, 0)
-                    print('{player_name} has cleared {resource_name} @ ({x},{y}) and received {resource_amount} {resource_name}'.format(self.rondel.current_player().name, 'peat', 0, 0, 0, 'peat'))
+                    values = {'player_name': self.rondel.current_player().name, 'resource_name': 'peat', 'x': 0, 'y': 0, 'resource_amount': 0}
+                    print('{player_name} has cleared {resource_name} @ ({x},{y}) and received {resource_amount} {resource_name}'.format(**values))
                     self.rondel.next_turn()
                     pass
             elif 'prior' in args[0]:
